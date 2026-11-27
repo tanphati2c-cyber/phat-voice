@@ -475,12 +475,19 @@ function buildVoicePlayer(audio, peaks) {
   audio.after(player);
   audio.classList.add("vo-native");
   const spans = [...wave.children];
+  const head = document.createElement("i");
+  head.className = "vo-head";
+  head.setAttribute("aria-hidden", "true");
+  wave.append(head);
   let lit = -1;
+  let dragFrac = null; // khi đang kéo: vị trí con trỏ (0–1), giao diện chạy theo tay kéo
   const paint = () => {
-    const d = audio.duration, c = audio.currentTime || 0;
-    const p = d ? c / d : 0;
+    const d = audio.duration;
+    const c = dragFrac !== null && d ? dragFrac * d : audio.currentTime || 0;
+    const p = d ? Math.min(Math.max(c / d, 0), 1) : 0;
     const n = Math.round(p * spans.length);
     if (n !== lit) { spans.forEach((b, i) => b.classList.toggle("on", i < n)); lit = n; }
+    head.style.left = (p * 100).toFixed(2) + "%";
     time.textContent = fmt(c) + " / " + fmt(d);
     wave.setAttribute("aria-valuemax", String(Math.round(d || 0)));
     wave.setAttribute("aria-valuenow", String(Math.round(c)));
@@ -489,8 +496,8 @@ function buildVoicePlayer(audio, peaks) {
     player.classList.toggle("is-playing", playing);
     play.setAttribute("aria-label", playing ? t("Tạm dừng", "Pause") : t("Phát mẫu giọng", "Play voice demo"));
   };
-  // Máy chủ hiện không hỗ trợ tải từng đoạn (Range), nên trình duyệt không tua được khi đang phát trực tiếp.
-  // Lần đầu khách bấm, tải trọn file MP3 (khoảng 1,5 MB) vào bộ nhớ rồi đổi sang bản đó để tua tự do.
+  // Dự phòng: nếu máy chủ không hỗ trợ tải từng đoạn (Range) thì trình duyệt không tua được.
+  // Khi đó, lần đầu khách bấm, tải trọn file MP3 vào bộ nhớ rồi đổi sang bản đó để tua tự do.
   let local = null;
   const canSeek = () => audio.duration > 0 && audio.seekable.length > 0 && audio.seekable.end(0) >= audio.duration - 1;
   const ensureLocal = () => local || (local = (async () => {
@@ -514,10 +521,44 @@ function buildVoicePlayer(audio, peaks) {
     audio.currentTime = Math.min(Math.max(fraction, 0), 1) * audio.duration;
     paint();
   };
-  wave.addEventListener("click", (event) => {
+  // Kéo trên sóng âm: phần đỏ, vạch con trỏ và âm thanh chạy theo tay kéo theo thời gian thực.
+  const fracAt = (event) => {
     const r = wave.getBoundingClientRect();
-    seekTo((event.clientX - r.left) / r.width).then(() => { if (audio.paused) audio.play().catch(() => {}); });
+    return Math.min(Math.max((event.clientX - r.left) / r.width, 0), 1);
+  };
+  let frame = 0;
+  const scrubAudio = () => {
+    frame = 0;
+    if (dragFrac !== null && audio.duration && canSeek()) audio.currentTime = dragFrac * audio.duration;
+  };
+  wave.addEventListener("pointerdown", (event) => {
+    if (event.button !== 0) return;
+    event.preventDefault();
+    wave.focus({ preventScroll: true });
+    wave.setPointerCapture(event.pointerId);
+    player.classList.add("is-scrubbing");
+    dragFrac = fracAt(event);
+    paint();
+    if (!audio.duration) { audio.addEventListener("loadedmetadata", paint, { once: true }); audio.load(); }
+    ensureLocal();
+    if (!frame) frame = requestAnimationFrame(scrubAudio);
   });
+  wave.addEventListener("pointermove", (event) => {
+    if (dragFrac === null) return;
+    dragFrac = fracAt(event);
+    paint();
+    if (!frame) frame = requestAnimationFrame(scrubAudio);
+  });
+  const endDrag = (event, commit) => {
+    if (dragFrac === null) return;
+    const f = event && commit ? fracAt(event) : dragFrac;
+    dragFrac = null;
+    player.classList.remove("is-scrubbing");
+    if (commit) seekTo(f).then(() => { if (audio.paused) audio.play().catch(() => {}); });
+    else paint();
+  };
+  wave.addEventListener("pointerup", (event) => endDrag(event, true));
+  wave.addEventListener("pointercancel", () => endDrag(null, false));
   wave.addEventListener("keydown", (event) => {
     if (!audio.duration) return;
     const step = event.key === "ArrowRight" ? 5 : event.key === "ArrowLeft" ? -5 : 0;

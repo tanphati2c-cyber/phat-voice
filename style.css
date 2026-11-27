@@ -1864,8 +1864,12 @@ html[lang="vi"] .coach-art p {
 .vo-play:hover { transform: scale(1.06); }
 .vo-play::before { content: ""; position: absolute; left: 19px; top: 15px; border-style: solid; border-width: 9px 0 9px 14px; border-color: transparent transparent transparent #fff; }
 .vo-player.is-playing .vo-play::before { left: 17px; top: 16px; width: 4px; height: 16px; border: 0; background: #fff; box-shadow: 9px 0 0 #fff; }
-.vo-wave { flex: 1; min-width: 0; height: 44px; display: flex; align-items: center; gap: 2px; cursor: pointer; }
-.vo-wave span { flex: 1; min-width: 1px; border-radius: 2px; background: var(--line); transition: background .15s ease; }
+.vo-wave { flex: 1; min-width: 0; height: 44px; display: flex; align-items: center; gap: 2px; cursor: pointer; position: relative; touch-action: pan-y; user-select: none; -webkit-user-select: none; }
+.vo-head { position: absolute; top: 0; bottom: 0; left: 0; width: 2px; margin-left: -1px; border-radius: 2px; background: var(--wine); pointer-events: none; opacity: 0; transition: opacity .15s ease; }
+.vo-player.is-playing .vo-head, .vo-player.is-scrubbing .vo-head, .vo-wave:hover .vo-head { opacity: 1; }
+.vo-player.is-scrubbing .vo-head { width: 3px; margin-left: -1.5px; box-shadow: 0 0 0 3px color-mix(in srgb, var(--wine) 25%, transparent); }
+.vo-player.is-scrubbing .vo-wave { cursor: grabbing; }
+.vo-wave span { flex: 1; pointer-events: none; min-width: 1px; border-radius: 2px; background: var(--line); transition: background .15s ease; }
 .vo-wave span.on { background: var(--wine); }
 .vo-wave:focus-visible { outline: 2px solid var(--wine); outline-offset: 4px; border-radius: 4px; }
 .vo-time { flex: 0 0 auto; font-size: 13px; font-variant-numeric: tabular-nums; color: var(--muted); }
