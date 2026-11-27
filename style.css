@@ -1906,3 +1906,22 @@ html[lang="vi"] .coach-art p {
 /* Phòng thu tại nhà */
 .studio-gear-section .studio-lead { color: var(--muted); max-width: 60ch; margin-top: 12px; }
 .studio-gear-section .studio-spec p { margin: 8px 0 0; color: var(--muted); }
+
+/* Sóng âm tinh tế hơn: vạch mảnh cố định, khoảng cách đều, chiều cao thấp hơn */
+.vo-wave { height: 32px; gap: 0; justify-content: space-between; }
+.vo-wave span { flex: 0 0 2px; width: 2px; min-width: 2px; border-radius: 1px; background: color-mix(in srgb, var(--ink) 16%, transparent); }
+.vo-wave span.on { background: var(--wine); }
+.vo-head { width: 1px; margin-left: -.5px; }
+.vo-player.is-scrubbing .vo-head { width: 2px; margin-left: -1px; box-shadow: none; }
+.vo-play { flex-basis: 44px; width: 44px; height: 44px; }
+.vo-play::before { left: 17px; top: 14px; border-width: 8px 0 8px 13px; }
+.vo-player.is-playing .vo-play::before { left: 16px; top: 14px; width: 3px; height: 16px; box-shadow: 9px 0 0 #fff; }
+.vo-time { font-size: 12px; letter-spacing: .02em; }
+.library-item { padding: 16px 22px; }
+.library-item .vo-player { max-width: 760px; }
+.library-item .vo-wave { height: 28px; }
+.library-item .vo-play { flex-basis: 36px; width: 36px; height: 36px; background: transparent; border: 1.5px solid var(--wine); }
+.library-item .vo-play::before { left: 13px; top: 10px; border-width: 7px 0 7px 11px; border-color: transparent transparent transparent var(--wine); }
+.library-item .vo-player.is-playing .vo-play { background: var(--wine); }
+.library-item .vo-player.is-playing .vo-play::before { left: 12px; top: 10px; width: 3px; height: 14px; box-shadow: 7px 0 0 #fff; background: #fff; border: 0; }
+@media (max-width: 700px) { .vo-wave span { flex-basis: 1.5px; width: 1.5px; min-width: 1.5px; } }
