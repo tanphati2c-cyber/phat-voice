@@ -1879,3 +1879,26 @@ html[lang="vi"] .coach-art p {
   .vo-wave { gap: 1px; height: 40px; }
   .vo-time { font-size: 12px; padding-left: 4px; }
 }
+
+/* Thư viện demo theo thể loại */
+.library-section .section-head p.library-lead { color: var(--muted); max-width: 56ch; margin-top: 12px; }
+.library-tabs { display: flex; flex-wrap: wrap; gap: 8px; margin: 28px 0 20px; }
+.library-tab { font: inherit; font-size: 14px; font-weight: 600; display: inline-flex; align-items: center; gap: 8px; padding: 10px 16px; border-radius: 999px; border: 1px solid var(--line); background: transparent; color: inherit; cursor: pointer; transition: background .15s ease, color .15s ease, border-color .15s ease; }
+.library-tab:hover { border-color: var(--wine); }
+.library-tab[aria-selected="true"] { background: var(--wine); border-color: var(--wine); color: #fff; }
+.library-tab:focus-visible { outline: 2px solid var(--wine); outline-offset: 3px; }
+.library-count { font-size: 12px; opacity: .7; }
+.library-panel { display: grid; gap: 12px; }
+.library-item { display: grid; grid-template-columns: minmax(180px, 260px) 1fr; gap: 24px; align-items: center; padding: 18px 20px; border: 1px solid var(--line); border-radius: 16px; }
+.library-item audio { display: none; }
+.library-meta h3 { font-size: 18px; margin: 0; display: inline; margin-right: 8px; }
+.library-meta p { margin: 6px 0 0; font-size: 14px; color: var(--muted); }
+.library-badge { display: inline-block; vertical-align: 2px; font-size: 11px; font-weight: 700; letter-spacing: .04em; text-transform: uppercase; padding: 3px 8px; border-radius: 999px; background: color-mix(in srgb, var(--wine) 12%, transparent); color: var(--wine); }
+.library-item.is-spec .library-badge { background: color-mix(in srgb, var(--muted) 15%, transparent); color: var(--muted); }
+.library-item .vo-play { flex-basis: 40px; width: 40px; height: 40px; }
+.library-item .vo-play::before { left: 15px; top: 12px; border-width: 8px 0 8px 12px; }
+.library-item .vo-player.is-playing .vo-play::before { left: 13px; top: 12px; height: 16px; }
+.library-item .vo-wave { height: 36px; }
+@media (max-width: 700px) {
+  .library-item { grid-template-columns: 1fr; gap: 12px; padding: 16px; }
+}

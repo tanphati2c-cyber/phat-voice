@@ -528,7 +528,7 @@ function buildVoicePlayer(audio, peaks) {
   let lit = -1;
   let dragFrac = null; // khi đang kéo: vị trí con trỏ (0–1), giao diện chạy theo tay kéo
   const paint = () => {
-    const d = audio.duration;
+    const d = audio.duration || Number(audio.dataset.duration) || 0;
     const c = dragFrac !== null && d ? dragFrac * d : audio.currentTime || 0;
     const p = d ? Math.min(Math.max(c / d, 0), 1) : 0;
     const n = Math.round(p * spans.length);
@@ -562,7 +562,7 @@ function buildVoicePlayer(audio, peaks) {
     else audio.pause();
   });
   const seekTo = async (fraction) => {
-    if (!audio.duration) await new Promise((resolve) => { audio.addEventListener("loadedmetadata", resolve, { once: true }); audio.load(); });
+    if (!audio.duration) await new Promise((resolve) => { audio.addEventListener("loadedmetadata", resolve, { once: true }); if (audio.readyState === 0) audio.load(); });
     await ensureLocal();
     audio.currentTime = Math.min(Math.max(fraction, 0), 1) * audio.duration;
     paint();
@@ -614,6 +614,96 @@ function buildVoicePlayer(audio, peaks) {
   ["timeupdate", "play", "pause", "ended", "loadedmetadata", "durationchange", "emptied"].forEach((e) => audio.addEventListener(e, paint));
   paint();
 }
+
+// Thư viện demo theo thể loại: tab chọn thể loại, mỗi demo một khung nghe sóng âm.
+(() => {
+  const root = document.getElementById("demo-library");
+  const library = window.PHAT_LIBRARY;
+  if (!root || !Array.isArray(library)) return;
+  const prefix = root.dataset.base || "../";
+  const tabs = root.querySelector(".library-tabs");
+  const list = root.querySelector(".library-list");
+  const badge = {
+    aired: t("TVC đã phát sóng", "Aired TVC"),
+    demo: "Demo",
+    spec: t("Demo tự thu (spec)", "Spec demo"),
+  };
+  // Trang tiếng Anh: đưa các nhóm tiếng Anh lên trước.
+  const groups = siteLanguage === "en" ? [...library].sort((a, b) => (b.id.endsWith("-en") ? 1 : 0) - (a.id.endsWith("-en") ? 1 : 0)) : library;
+  const panels = groups.map((group, index) => {
+    const tab = document.createElement("button");
+    tab.type = "button";
+    tab.className = "library-tab";
+    tab.id = "lib-tab-" + group.id;
+    tab.setAttribute("role", "tab");
+    tab.setAttribute("aria-controls", "lib-panel-" + group.id);
+    tab.innerHTML = "";
+    tab.append(group[siteLanguage] || group.en, Object.assign(document.createElement("span"), { className: "library-count", textContent: String(group.items.length) }));
+    tabs.append(tab);
+    const panel = document.createElement("div");
+    panel.className = "library-panel";
+    panel.id = "lib-panel-" + group.id;
+    panel.setAttribute("role", "tabpanel");
+    panel.setAttribute("aria-labelledby", tab.id);
+    let built = false;
+    const build = () => {
+      if (built) return;
+      built = true;
+      group.items.forEach((item) => {
+        const row = document.createElement("article");
+        row.className = "library-item is-" + item.kind;
+        const head = document.createElement("div");
+        head.className = "library-meta";
+        const title = document.createElement("h3");
+        title.textContent = item.title;
+        const note = document.createElement("p");
+        note.textContent = item[siteLanguage] || item.en;
+        const tag = document.createElement("span");
+        tag.className = "library-badge";
+        tag.textContent = badge[item.kind] || "Demo";
+        head.append(title, tag, note);
+        const audio = document.createElement("audio");
+        audio.preload = "none";
+        audio.src = prefix + item.src;
+        audio.dataset.duration = String(item.duration);
+        audio.setAttribute("aria-label", item.title);
+        row.append(head, audio);
+        panel.append(row);
+        buildVoicePlayer(audio, item.peaks);
+        audio.addEventListener("play", () => {
+          document.querySelectorAll("audio, video").forEach((other) => { if (other !== audio) other.pause(); });
+        });
+      });
+    };
+    list.append(panel);
+    return { tab, panel, build, index };
+  });
+  const select = (chosen, focus) => {
+    panels.forEach((entry) => {
+      const on = entry === chosen;
+      entry.tab.setAttribute("aria-selected", String(on));
+      entry.tab.tabIndex = on ? 0 : -1;
+      entry.panel.hidden = !on;
+      if (on) entry.build();
+    });
+    if (focus) chosen.tab.focus();
+  };
+  panels.forEach((entry) => {
+    entry.tab.addEventListener("click", () => select(entry));
+    entry.tab.addEventListener("keydown", (event) => {
+      const step = event.key === "ArrowRight" ? 1 : event.key === "ArrowLeft" ? -1 : 0;
+      if (!step) return;
+      event.preventDefault();
+      select(panels[(entry.index + step + panels.length) % panels.length], true);
+    });
+  });
+  select(panels[0]);
+  // Các video/audio khác trên trang cũng dừng thư viện khi phát.
+  document.querySelectorAll("audio, video").forEach((media) => {
+    if (root.contains(media)) return;
+    media.addEventListener("play", () => root.querySelectorAll("audio").forEach((a) => a.pause()));
+  });
+})();
 
 // Nút lên đầu trang: chỉ xuất hiện khi đã cuộn khỏi vị trí đầu.
 const backToTop = document.querySelector(".back-to-top");
