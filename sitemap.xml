@@ -1,0 +1,39 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9" xmlns:xhtml="http://www.w3.org/1999/xhtml">
+  <url>
+    <loc>https://ngotanphat.com/en/</loc>
+    <lastmod>2026-11-27</lastmod>
+    <xhtml:link rel="alternate" hreflang="en" href="https://ngotanphat.com/en/"/>
+    <xhtml:link rel="alternate" hreflang="vi" href="https://ngotanphat.com/vi/"/>
+  </url>
+  <url>
+    <loc>https://ngotanphat.com/en/direction.html</loc>
+    <lastmod>2026-11-27</lastmod>
+    <xhtml:link rel="alternate" hreflang="en" href="https://ngotanphat.com/en/direction.html"/>
+    <xhtml:link rel="alternate" hreflang="vi" href="https://ngotanphat.com/vi/direction.html"/>
+  </url>
+  <url>
+    <loc>https://ngotanphat.com/en/coaching.html</loc>
+    <lastmod>2026-11-27</lastmod>
+    <xhtml:link rel="alternate" hreflang="en" href="https://ngotanphat.com/en/coaching.html"/>
+    <xhtml:link rel="alternate" hreflang="vi" href="https://ngotanphat.com/vi/coaching.html"/>
+  </url>
+  <url>
+    <loc>https://ngotanphat.com/vi/</loc>
+    <lastmod>2026-11-27</lastmod>
+    <xhtml:link rel="alternate" hreflang="en" href="https://ngotanphat.com/en/"/>
+    <xhtml:link rel="alternate" hreflang="vi" href="https://ngotanphat.com/vi/"/>
+  </url>
+  <url>
+    <loc>https://ngotanphat.com/vi/direction.html</loc>
+    <lastmod>2026-11-27</lastmod>
+    <xhtml:link rel="alternate" hreflang="en" href="https://ngotanphat.com/en/direction.html"/>
+    <xhtml:link rel="alternate" hreflang="vi" href="https://ngotanphat.com/vi/direction.html"/>
+  </url>
+  <url>
+    <loc>https://ngotanphat.com/vi/coaching.html</loc>
+    <lastmod>2026-11-27</lastmod>
+    <xhtml:link rel="alternate" hreflang="en" href="https://ngotanphat.com/en/coaching.html"/>
+    <xhtml:link rel="alternate" hreflang="vi" href="https://ngotanphat.com/vi/coaching.html"/>
+  </url>
+</urlset>
