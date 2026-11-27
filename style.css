@@ -1902,3 +1902,7 @@ html[lang="vi"] .coach-art p {
 @media (max-width: 700px) {
   .library-item { grid-template-columns: 1fr; gap: 12px; padding: 16px; }
 }
+
+/* Phòng thu tại nhà */
+.studio-gear-section .studio-lead { color: var(--muted); max-width: 60ch; margin-top: 12px; }
+.studio-gear-section .studio-spec p { margin: 8px 0 0; color: var(--muted); }
