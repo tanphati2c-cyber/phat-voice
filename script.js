@@ -134,6 +134,8 @@ const config = window.PHAT_CONFIG || {};
 const email = String(config.contactEmail || "").trim();
 const hasEmail =
   /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email) && !/[\r\n]/.test(email);
+const formEndpoint = String(config.formEndpoint || "").trim();
+const canSend = /^https:\/\/formspree\.io\/f\/[A-Za-z0-9]+$/.test(formEndpoint);
 document.querySelectorAll(".direct-contact").forEach((element) => {
   if (!hasEmail) return;
   const link = document.createElement("a");
@@ -154,10 +156,17 @@ document.querySelectorAll(".contact-form").forEach((form) => {
       ? t("Lưu nhu cầu học ↓", "Save my learning brief ↓")
       : t("Lưu yêu cầu dự án ↓", "Save my project brief ↓");
   submit.disabled = false;
-  submit.textContent = hasEmail
+  submit.textContent = canSend
+    ? t("Gửi yêu cầu", "Send inquiry")
+    : hasEmail
     ? t("Soạn email liên hệ", "Continue in email")
     : draftLabel;
-  note.textContent = hasEmail
+  note.textContent = canSend
+    ? t(
+        "Yêu cầu được gửi thẳng đến Phát. Phát sẽ trả lời qua email bạn điền, thường trong vòng 24 giờ.",
+        "Your inquiry goes straight to Phát, who will reply to the email you entered, usually within 24 hours.",
+      )
+    : hasEmail
     ? t(
         "Nút này mở ứng dụng email với nội dung bạn đã điền. Hãy kiểm tra và bấm gửi trong ứng dụng email. Biểu mẫu này không tự gửi thông tin.",
         "This opens your email app. Review and send the email there. Nothing is submitted by this form.",
@@ -166,7 +175,15 @@ document.querySelectorAll(".contact-form").forEach((form) => {
         "Lưu nội dung của bạn thành file văn bản. Bản xem thử chưa bật gửi liên hệ; yêu cầu của bạn sẽ chưa được gửi đi.",
         "Save your details as a text file. Online contact is not available on this preview; your brief will not be sent.",
       );
-  downloadButton.hidden = !hasEmail;
+  downloadButton.hidden = !hasEmail || canSend;
+  if (canSend && !form.querySelector('[name="_gotcha"]')) {
+    // Ô bẫy chống thư rác: người thật không thấy, bot thường điền vào.
+    const trap = document.createElement("input");
+    trap.type = "text"; trap.name = "_gotcha"; trap.tabIndex = -1; trap.autocomplete = "off";
+    trap.setAttribute("aria-hidden", "true");
+    trap.style.cssText = "position:absolute;left:-9999px;width:1px;height:1px;opacity:0";
+    form.append(trap);
+  }
 
   function makeBrief() {
     const data = new FormData(form);
@@ -200,12 +217,41 @@ document.querySelectorAll(".contact-form").forEach((form) => {
       "Your brief is ready to download. It has not been sent to Phát.",
     );
   }
+  async function sendForm() {
+    const data = new FormData(form);
+    data.set("_subject", form.dataset.title + " — " + String(data.get("name") || "").trim());
+    data.set("page", location.href);
+    const label = submit.textContent;
+    submit.disabled = true;
+    submit.textContent = t("Đang gửi…", "Sending…");
+    status.textContent = "";
+    try {
+      const response = await fetch(formEndpoint, { method: "POST", body: data, headers: { Accept: "application/json" } });
+      if (!response.ok) throw new Error(String(response.status));
+      form.reset();
+      status.textContent = t(
+        "Đã gửi! Cảm ơn bạn, Phát sẽ trả lời qua email sớm nhất có thể.",
+        "Sent! Thank you — Phát will reply by email as soon as possible.",
+      );
+    } catch (_) {
+      status.textContent =
+        t("Chưa gửi được. Vui lòng thử lại hoặc email trực tiếp đến ", "Could not send. Please try again or email ") +
+        (hasEmail ? email : "Phát") + ".";
+    } finally {
+      submit.disabled = false;
+      submit.textContent = label;
+    }
+  }
   downloadButton.addEventListener("click", () => {
     if (form.reportValidity()) saveBrief();
   });
   form.addEventListener("submit", (event) => {
     event.preventDefault();
     if (!form.reportValidity()) return;
+    if (canSend) {
+      sendForm();
+      return;
+    }
     if (!hasEmail) {
       saveBrief();
       return;
