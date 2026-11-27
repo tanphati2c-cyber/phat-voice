@@ -391,7 +391,9 @@ document
       "language",
       "format",
     ]) {
-      document.getElementById("project-" + key).textContent = item[key] || "—";
+      const field = document.getElementById("project-" + key);
+      field.textContent = item[key] || "";
+      if (field.tagName === "DD") field.parentElement.hidden = !item[key];
     }
     counter.textContent =
       String(index + 1).padStart(2, "0") +
@@ -932,5 +934,20 @@ document.querySelectorAll('.studio-section').forEach(section => {
     cell.addEventListener("keydown", (event) => {
       if (event.key === "Enter" || event.key === " ") { event.preventDefault(); open(); }
     });
+  });
+})();
+
+// Landscape role posters get a blurred backdrop instead of grey bars.
+(() => {
+  document.querySelectorAll(".role-image img").forEach((img) => {
+    const mark = () => {
+      if (!img.naturalWidth) return;
+      const ratio = img.naturalWidth / img.naturalHeight;
+      if (Math.abs(ratio - 1) < 0.05) return;
+      const btn = img.closest(".role-image");
+      btn.classList.add("is-wide");
+      btn.style.setProperty("--poster", 'url("' + img.currentSrc.replace(/"/g, "%22") + '")');
+    };
+    if (img.complete) mark(); else img.addEventListener("load", mark, { once: true });
   });
 })();

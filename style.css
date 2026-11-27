@@ -1932,3 +1932,44 @@ html[lang="vi"] .coach-art p {
   .library-item { grid-template-columns: 1fr; gap: 12px; align-content: start; }
   .library-item .vo-player { max-width: none; }
 }
+
+/* ---- UI polish 2026-11-27 ---- */
+/* 1. Even line breaks: no single word left alone on the last line */
+h1, h2, h3, .display { text-wrap: balance; }
+p, li, dd, figcaption { text-wrap: pretty; }
+
+/* 2. Landscape role posters sit on a blurred copy of themselves */
+.role-image.is-wide { isolation: isolate; }
+.role-image.is-wide::before { content: ""; position: absolute; inset: -20px; z-index: -1; background: var(--poster) center / cover no-repeat; filter: blur(22px) brightness(.75) saturate(1.1); }
+
+/* 4. Client logos: even optical size */
+.brands-grid .logo-cell { padding: 14px 18px; }
+.brands-grid .logo-cell img { max-height: 40px; }
+.brands-grid .logo-cell img[src*="TH-true-Food"], .brands-grid .logo-cell img[src*="traveloka"] { max-height: 30px; }
+.brands-grid .logo-cell img[src*="Oppo-mark"] { max-height: 22px; }
+.brands-grid .logo-cell img[src*="LOF-Kun"], .brands-grid .logo-cell img[src*="Kinh-Do"] { max-height: 50px; }
+
+/* 7. Less empty space before the journey section */
+.visual-site .journey-section { padding-top: 40px; }
+.journey-layout { align-items: start; }
+.journey-intro { padding-top: 40px; }
+
+/* 8. Language switch divider: a thin line, not a pipe that reads as "I" */
+.language-switch > span { font-size: 0; width: 1px; height: 14px; background: currentColor; opacity: .25; }
+
+@media (max-width: 700px) {
+  /* 5. Studio gear: two compact columns on phones */
+  .studio-gear-section .three-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; }
+  .visual-site .studio-gear-section .info-card { padding: 16px; }
+  .visual-site .studio-gear-section .info-card .number { margin-bottom: 10px; font-size: 12px; }
+  .visual-site .studio-gear-section .info-card h3, .studio-gear-section .step-copy .content-label { font-size: 17px; margin: 0 0 4px; }
+  .studio-gear-section .step-copy { padding-top: 12px; }
+  .studio-gear-section .studio-spec p { margin-top: 4px; }
+  .visual-site .studio-gear-section .info-card p { font-size: 13px; line-height: 1.5; }
+  /* 6. Library tabs: one swipeable row */
+  .library-tabs { flex-wrap: nowrap; overflow-x: auto; scrollbar-width: none; margin-inline: -6vw; padding-inline: 6vw; scroll-padding-inline: 6vw; }
+  .library-tabs::-webkit-scrollbar { display: none; }
+  .library-tab { flex: 0 0 auto; white-space: nowrap; padding: 9px 14px; font-size: 13px; }
+  .visual-site .journey-section { padding-top: 24px; }
+  .journey-intro { padding-top: 0; }
+}
