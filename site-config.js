@@ -4,5 +4,5 @@ window.PHAT_CONFIG = {
   phone: "+84362947507",
   zaloUrl: "https://zalo.me/84362947507",
   // Địa chỉ nhận form của Formspree (dạng https://formspree.io/f/xxxxxxx). Để trống thì form quay về cách mở ứng dụng email.
-  formEndpoint: "",
+  formEndpoint: "https://formspree.io/f/xqpqjjow",
 };
