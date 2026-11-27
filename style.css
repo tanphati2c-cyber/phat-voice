@@ -1846,3 +1846,27 @@ html[lang="vi"] .coach-art p {
 .journey-next:hover svg { transform:translateX(4px); }
 .journey-thanks { color:var(--wine); font-size:16px; line-height:1.75; }
 @media(prefers-reduced-motion:reduce) { .journey-next svg { transition:none; } }
+
+/* Vertical (9:16) TVCs: blurred backdrop instead of black side bars. */
+.visual-site .video-stage.is-portrait::before { content: ""; position: absolute; inset: -40px; background: var(--stage-backdrop, #151414) center / cover no-repeat; filter: blur(28px) brightness(.5); transform: scale(1.1); }
+.visual-site .video-stage.is-portrait > div { position: relative; z-index: 1; }
+.visual-site .video-stage.is-portrait video { background: transparent; }
+
+/* Logo có video: gợi ý bấm được. */
+.brands-grid .logo-cell.has-video { position: relative; cursor: pointer; transition: transform .2s ease, box-shadow .2s ease; }
+.brands-grid .logo-cell.has-video:hover, .brands-grid .logo-cell.has-video:focus-visible { transform: translateY(-2px); box-shadow: 0 6px 18px rgba(0,0,0,.08); }
+.brands-grid .logo-cell.has-video::after { content: "\25B6"; position: absolute; right: 10px; bottom: 8px; width: 22px; height: 22px; border-radius: 50%; display: grid; place-items: center; font-size: 9px; color: #fff; background: var(--wine); opacity: .85; }
+
+/* Trình phát mẫu giọng riêng. */
+.hero-demo audio.vo-native { display: none; }
+.vo-player { display: flex; align-items: center; gap: 14px; }
+.vo-play { flex: 0 0 48px; width: 48px; height: 48px; border-radius: 50%; border: 0; background: var(--wine); cursor: pointer; position: relative; transition: transform .15s ease; }
+.vo-play:hover { transform: scale(1.06); }
+.vo-play::before { content: ""; position: absolute; left: 19px; top: 15px; border-style: solid; border-width: 9px 0 9px 14px; border-color: transparent transparent transparent #fff; }
+.vo-player.is-playing .vo-play::before { left: 17px; top: 16px; width: 4px; height: 16px; border: 0; background: #fff; box-shadow: 9px 0 0 #fff; }
+.vo-wave { flex: 1; min-width: 0; height: 44px; display: flex; align-items: center; gap: 2px; cursor: pointer; }
+.vo-wave span { flex: 1; min-width: 1px; border-radius: 2px; background: var(--line); transition: background .15s ease; }
+.vo-wave span.on { background: var(--wine); }
+.vo-wave:focus-visible { outline: 2px solid var(--wine); outline-offset: 4px; border-radius: 4px; }
+.vo-time { flex: 0 0 auto; font-size: 13px; font-variant-numeric: tabular-nums; color: var(--muted); }
+@media (max-width: 700px) { .vo-player { gap: 10px; } .vo-time { font-size: 12px; } }

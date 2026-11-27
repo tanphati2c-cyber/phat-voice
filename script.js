@@ -378,6 +378,15 @@ document
         move(event.key === "ArrowLeft" ? -1 : 1);
       }
     });
+  // Cho phép phần khác của trang (ví dụ logo thương hiệu) mở đúng một video.
+  window.PhatShowProject = (id) => {
+    const found = projects.findIndex((item) => item.id === id);
+    if (found < 0) return false;
+    index = found;
+    renderProject();
+    gallery.closest("section").scrollIntoView({ behavior: "smooth", block: "start" });
+    return true;
+  };
   renderProject();
   gallery.querySelector(".project-controls").hidden = false;
 })();
@@ -431,11 +440,93 @@ document.querySelectorAll("[data-language]").forEach((link) => {
     audio.querySelector("source").type = demo.type || "audio/mpeg";
     audio.load();
     document.getElementById("demo-download").href = new URL(
-      demo.source,
+      demo.download || demo.source,
       siteRoot,
     ).href;
+    buildVoicePlayer(audio, demo.peaks);
   }
 })();
+
+// Trình phát riêng: nút phát lớn, sóng âm bấm để tua, thời gian. Thẻ <audio> gốc vẫn giữ để phát.
+function buildVoicePlayer(audio, peaks) {
+  if (!audio || audio.dataset.custom) return;
+  audio.dataset.custom = "1";
+  const bars = Array.isArray(peaks) && peaks.length ? peaks : Array.from({ length: 72 }, () => 0.5);
+  const fmt = (s) => (isFinite(s) ? Math.floor(s / 60) + ":" + String(Math.floor(s % 60)).padStart(2, "0") : "0:00");
+  const player = document.createElement("div");
+  player.className = "vo-player";
+  const play = document.createElement("button");
+  play.type = "button";
+  play.className = "vo-play";
+  const wave = document.createElement("div");
+  wave.className = "vo-wave";
+  wave.tabIndex = 0;
+  wave.setAttribute("role", "slider");
+  wave.setAttribute("aria-label", t("Tua mẫu giọng", "Seek voice demo"));
+  wave.setAttribute("aria-valuemin", "0");
+  for (const v of bars) {
+    const bar = document.createElement("span");
+    bar.style.height = Math.max(8, Math.round(v * 100)) + "%";
+    wave.append(bar);
+  }
+  const time = document.createElement("span");
+  time.className = "vo-time";
+  player.append(play, wave, time);
+  audio.after(player);
+  audio.classList.add("vo-native");
+  const spans = [...wave.children];
+  let lit = -1;
+  const paint = () => {
+    const d = audio.duration, c = audio.currentTime || 0;
+    const p = d ? c / d : 0;
+    const n = Math.round(p * spans.length);
+    if (n !== lit) { spans.forEach((b, i) => b.classList.toggle("on", i < n)); lit = n; }
+    time.textContent = fmt(c) + " / " + fmt(d);
+    wave.setAttribute("aria-valuemax", String(Math.round(d || 0)));
+    wave.setAttribute("aria-valuenow", String(Math.round(c)));
+    wave.setAttribute("aria-valuetext", fmt(c));
+    const playing = !audio.paused && !audio.ended;
+    player.classList.toggle("is-playing", playing);
+    play.setAttribute("aria-label", playing ? t("Tạm dừng", "Pause") : t("Phát mẫu giọng", "Play voice demo"));
+  };
+  // Máy chủ hiện không hỗ trợ tải từng đoạn (Range), nên trình duyệt không tua được khi đang phát trực tiếp.
+  // Lần đầu khách bấm, tải trọn file MP3 (khoảng 1,5 MB) vào bộ nhớ rồi đổi sang bản đó để tua tự do.
+  let local = null;
+  const canSeek = () => audio.duration > 0 && audio.seekable.length > 0 && audio.seekable.end(0) >= audio.duration - 1;
+  const ensureLocal = () => local || (local = (async () => {
+    if (location.protocol === "file:" || canSeek()) return;
+    try {
+      const blob = await (await fetch(audio.currentSrc || audio.querySelector("source").src)).blob();
+      const at = audio.currentTime, wasPlaying = !audio.paused;
+      audio.src = URL.createObjectURL(blob);
+      await new Promise((resolve) => audio.addEventListener("loadedmetadata", resolve, { once: true }));
+      audio.currentTime = at;
+      if (wasPlaying) audio.play().catch(() => {});
+    } catch (_) {}
+  })());
+  play.addEventListener("click", () => {
+    if (audio.paused) { audio.play().catch(() => {}); ensureLocal(); }
+    else audio.pause();
+  });
+  const seekTo = async (fraction) => {
+    if (!audio.duration) await new Promise((resolve) => { audio.addEventListener("loadedmetadata", resolve, { once: true }); audio.load(); });
+    await ensureLocal();
+    audio.currentTime = Math.min(Math.max(fraction, 0), 1) * audio.duration;
+    paint();
+  };
+  wave.addEventListener("click", (event) => {
+    const r = wave.getBoundingClientRect();
+    seekTo((event.clientX - r.left) / r.width).then(() => { if (audio.paused) audio.play().catch(() => {}); });
+  });
+  wave.addEventListener("keydown", (event) => {
+    if (!audio.duration) return;
+    const step = event.key === "ArrowRight" ? 5 : event.key === "ArrowLeft" ? -5 : 0;
+    if (step) { event.preventDefault(); seekTo((audio.currentTime + step) / audio.duration); }
+    else if (event.key === " " || event.key === "Enter") { event.preventDefault(); play.click(); }
+  });
+  ["timeupdate", "play", "pause", "ended", "loadedmetadata", "durationchange", "emptied"].forEach((e) => audio.addEventListener(e, paint));
+  paint();
+}
 
 // Nút lên đầu trang: chỉ xuất hiện khi đã cuộn khỏi vị trí đầu.
 const backToTop = document.querySelector(".back-to-top");
@@ -627,4 +718,42 @@ document.querySelectorAll('.studio-section').forEach(section => {
   opener?.focus({preventScroll:true});
  });
  reduce.addEventListener('change', () => { if (dialog.open && reduce.matches) finish(); });
+})();
+
+/* Mark the featured player when the current video is vertical, so CSS can fill the side bars. */
+(() => {
+  const video = document.getElementById('project-video');
+  const stage = video && video.closest('.video-stage');
+  if (!stage) return;
+  const update = () => {
+    const portrait = video.videoHeight > video.videoWidth;
+    stage.classList.toggle('is-portrait', portrait);
+    const poster = video.getAttribute('poster');
+    if (portrait && poster) stage.style.setProperty('--stage-backdrop', `url("${new URL(poster, location.href).href}")`);
+    else stage.style.removeProperty('--stage-backdrop');
+  };
+  video.addEventListener('loadedmetadata', update);
+  video.addEventListener('emptied', () => stage.classList.remove('is-portrait'));
+})();
+
+/* Logo thương hiệu có TVC trong phần Sản phẩm tiêu biểu: bấm để xem đúng video đó. */
+(() => {
+  const map = { "TH true FOOD": "th-true-food", "vivo": "vivo-y39", "Traveloka": "traveloka" };
+  if (typeof window.PhatShowProject !== "function") return;
+  document.querySelectorAll(".brands-grid .logo-cell img").forEach((img) => {
+    const id = map[img.alt];
+    if (!id) return;
+    const cell = img.closest(".logo-cell");
+    cell.classList.add("has-video");
+    cell.setAttribute("role", "button");
+    cell.tabIndex = 0;
+    const label = t("Xem TVC ", "Watch the ") + img.alt + t("", " TV spot");
+    cell.setAttribute("aria-label", label);
+    cell.title = label;
+    const open = () => window.PhatShowProject(id);
+    cell.addEventListener("click", open);
+    cell.addEventListener("keydown", (event) => {
+      if (event.key === "Enter" || event.key === " ") { event.preventDefault(); open(); }
+    });
+  });
 })();
